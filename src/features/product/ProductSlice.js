@@ -1,8 +1,11 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { fetchAllProducts, fetchProductsByFilters } from './ProductAPI';
+import { fetchAllProducts, fetchProductsByFilters, fetchBrands, fetchCategories } from './ProductAPI';
 
 const initialState = {
   products: [],
+  totalItems:0,
+  brands:[],
+  categories:[],
   status: 'idle',
 };
 
@@ -16,10 +19,12 @@ export const fetchAllProductsAsync = createAsyncThunk(
   }
 );
 
+
 export const fetchProductsByFiltersAsync = createAsyncThunk(
   'products/fetchProductsByFilter',
-   async ({filter,sort}) => {
-    const response = await fetchProductsByFilters(filter,sort);
+   async ({filter,sort,pagination}) => {
+    console.log("pagination object in slice",pagination)
+    const response = await fetchProductsByFilters(filter,sort,pagination);
     // The value we return becomes the `fulfilled` action payload
     console.log("this from filter slice",response.data);
     return response.data;
@@ -27,9 +32,34 @@ export const fetchProductsByFiltersAsync = createAsyncThunk(
   }
 );
 
+export const fetchBrandsAsync = createAsyncThunk(
+  'products/fetchBrands',
+  async () => {
+    const response = await fetchBrands();
+    // The value we return becomes the `fulfilled` action payload
+    console.log("slice recieves data",response.data);
+    return response.data;
+  }
+);
+
+export const fetchCategoriesAsync = createAsyncThunk(
+  'products/fetchCategories',
+  async () => {
+    const response = await fetchBrands(); fetchCategories();
+    // The value we return becomes the `fulfilled` action payload
+    console.log("slice recieves data",response.data);
+    return response.data;
+  }
+);
+
+
+
+
+
 export const productSlice = createSlice({
   name: 'product',
   initialState,
+ 
   // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
     increment: (state) => {
@@ -51,8 +81,23 @@ export const productSlice = createSlice({
       })
       .addCase(fetchProductsByFiltersAsync.fulfilled, (state, action) => {
         state.status = 'idle';
-        state.products = action.payload;
-      });
+        state.products = action.payload.products;
+        state.totalItems = action.payload.totalItems;
+      })
+      .addCase(fetchBrandsAsync.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchBrandsAsync.fulfilled, (state, action) => {
+        state.status = 'idle';
+        state.brands = action.payload;
+      })
+      .addCase(fetchCategoriesAsync.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchCategoriesAsync.fulfilled, (state, action) => {
+        state.status = 'idle';
+        state.categories = action.payload;
+      })
   },
 });
 
@@ -63,5 +108,11 @@ export const { increment } = productSlice.actions;
 // in the slice file. For example: `useSelector((state: RootState) => state.counter.value)`
 
 export const selectAllProducts = (state) => state.product.products;
+
+export const selectCategories = (state) => state.product.categories;
+
+export const selectBrands = (state) => state.product.brands;
+
+export const selectTotalItems = (state) => state.product.totalItems;
 
 export default productSlice.reducer;
