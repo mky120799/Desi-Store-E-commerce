@@ -41,7 +41,7 @@ function App() {
       element:<Checkout/>,
     },
     {
-      path:"/ProductDetails",
+      path: '/product-detail/:id',
       element:<ProductDetailsPage/>,
     }
   ]);
