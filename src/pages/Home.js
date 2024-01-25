@@ -1,8 +1,8 @@
 import React from 'react'
-import NavBar from '../features/navbar/NavBar'
+import NavBar from '../features/navbar/Navbar'
 import ProductList from '../features/product/components/PoductList'
 
-const HomePage = () => {
+const Home = () => {
   return (
     <>
     <NavBar>
@@ -13,4 +13,4 @@ const HomePage = () => {
   )
 }
 
-export default HomePage
+export default Home
