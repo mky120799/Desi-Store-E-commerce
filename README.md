@@ -22,6 +22,7 @@ Things Acheived
  - worked on categories and brands they are also fetched from API using Redux Thunk
  - created routing for the product page 
     - if person clicks on any of the pages of Product grid he will on to the product page of the item
+ 
     
 
 

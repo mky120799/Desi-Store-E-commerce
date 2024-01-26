@@ -1,21 +1,33 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { fetchAllProducts,
+import {
+  fetchAllProducts,
   fetchProductsByFilters,
-   fetchBrands, 
-   fetchCategories,
-    fetchProductById } from './ProductAPI';
+  fetchBrands,
+  fetchCategories,
+  fetchProductById,
+  createProduct,
+  updateProduct,
+} from './productAPI';
 
 const initialState = {
   products: [],
-  totalItems:0,
-  brands:[],
-  categories:[],
+  brands: [],
+  categories: [],
   status: 'idle',
-
-  selectedProduct:null
+  totalItems: 0,
+  selectedProduct: null,
 };
 
-export const fetchAllProductByIdAsync = createAsyncThunk(
+export const fetchAllProductsAsync = createAsyncThunk(
+  'product/fetchAllProducts',
+  async () => {
+    const response = await fetchAllProducts();
+    // The value we return becomes the `fulfilled` action payload
+    return response.data;
+  }
+);
+
+export const fetchProductByIdAsync = createAsyncThunk(
   'product/fetchProductById',
   async (id) => {
     const response = await fetchProductById(id);
@@ -24,64 +36,56 @@ export const fetchAllProductByIdAsync = createAsyncThunk(
   }
 );
 
-export const fetchAllProductsAsync = createAsyncThunk(
-  'products/fetchAllProducts',
-  async () => {
-    const response = await fetchAllProducts();
-    // The value we return becomes the `fulfilled` action payload
-    console.log("slice recieves data",response.data);
-    return response.data;
-  }
-);
-
-
 export const fetchProductsByFiltersAsync = createAsyncThunk(
-  'products/fetchProductsByFilter',
-   async ({filter,sort,pagination}) => {
-    console.log("pagination object in slice",pagination)
-    const response = await fetchProductsByFilters(filter,sort,pagination);
+  'product/fetchProductsByFilters',
+  async ({ filter, sort, pagination }) => {
+    const response = await fetchProductsByFilters(filter, sort, pagination);
     // The value we return becomes the `fulfilled` action payload
-    console.log("this from filter slice",response.data);
     return response.data;
-    
   }
 );
 
 export const fetchBrandsAsync = createAsyncThunk(
-  'products/fetchBrands',
+  'product/fetchBrands',
   async () => {
     const response = await fetchBrands();
     // The value we return becomes the `fulfilled` action payload
-    console.log("slice recieves data",response.data);
     return response.data;
   }
 );
-
 export const fetchCategoriesAsync = createAsyncThunk(
-  'products/fetchCategories',
+  'product/fetchCategories',
   async () => {
-    const response = await fetchBrands(); fetchCategories();
+    const response = await fetchCategories();
     // The value we return becomes the `fulfilled` action payload
-    console.log("slice recieves data",response.data);
     return response.data;
   }
 );
 
+export const createProductAsync = createAsyncThunk(
+  'product/create',
+  async (product) => {
+    const response = await createProduct(product);
+    return response.data;
+  }
+);
 
-
-
+export const updateProductAsync = createAsyncThunk(
+  'product/update',
+  async (update) => {
+    const response = await updateProduct(update);
+    return response.data;
+  }
+);
 
 export const productSlice = createSlice({
   name: 'product',
   initialState,
- 
-  // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
-    increment: (state) => {
-      state.value += 1;
-    },
+    clearSelectedProduct:(state)=>{
+      state.selectedProduct = null
+    }
   },
-
   extraReducers: (builder) => {
     builder
       .addCase(fetchAllProductsAsync.pending, (state) => {
@@ -113,30 +117,40 @@ export const productSlice = createSlice({
         state.status = 'idle';
         state.categories = action.payload;
       })
-      .addCase(fetchAllProductByIdAsync.pending, (state) => {
+      .addCase(fetchProductByIdAsync.pending, (state) => {
         state.status = 'loading';
       })
-      .addCase(fetchAllProductByIdAsync.fulfilled, (state, action) => {
+      .addCase(fetchProductByIdAsync.fulfilled, (state, action) => {
         state.status = 'idle';
         state.selectedProduct = action.payload;
       })
+      .addCase(createProductAsync.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(createProductAsync.fulfilled, (state, action) => {
+        state.status = 'idle';
+        state.products.push(action.payload);
+      })
+      .addCase(updateProductAsync.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(updateProductAsync.fulfilled, (state, action) => {
+        state.status = 'idle';
+        const index = state.products.findIndex(
+          (product) => product.id === action.payload.id
+        );
+        state.products[index] = action.payload;
+      });
   },
 });
 
-export const { increment } = productSlice.actions;
-
-// The function below is called a selector and allows us to select a value from
-// the state. Selectors can also be defined inline where they're used instead of
-// in the slice file. For example: `useSelector((state: RootState) => state.counter.value)`
+export const { clearSelectedProduct } = productSlice.actions;
 
 export const selectAllProducts = (state) => state.product.products;
-
-export const selectCategories = (state) => state.product.categories;
-
 export const selectBrands = (state) => state.product.brands;
+export const selectCategories = (state) => state.product.categories;
+export const selectProductById = (state) => state.product.selectedProduct;
 
 export const selectTotalItems = (state) => state.product.totalItems;
-
-export const selectProductById = (state) => state.product.selectedProduct;
 
 export default productSlice.reducer;
